@@ -70,6 +70,13 @@ module "irsa-ebs-csi" {
   oidc_fully_qualified_subjects = ["system:serviceaccount:kube-system:ebs-csi-controller-sa"]
 }
 
+# AWS Load Balancer Controller
+resource "aws_iam_policy" "aws_load_balancer_controller" {
+  name_prefix = "AWSLoadBalancerController"
+  description = "EKS AWS Load Balancer Controller policy"
+  policy      = file("${path.module}/../iam/AWSLoadBalancerController.json")
+}
+
 module "irsa-aws-load-balancer-controller" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-assumable-role-with-oidc"
   version = "5.58.0"
@@ -79,13 +86,6 @@ module "irsa-aws-load-balancer-controller" {
   provider_url                  = module.eks.oidc_provider
   role_policy_arns              = [aws_iam_policy.aws_load_balancer_controller.arn]
   oidc_fully_qualified_subjects = ["system:serviceaccount:kube-system:aws-load-balancer-controller"]
-}
-
-# AWS Load Balancer Controller
-resource "aws_iam_policy" "aws_load_balancer_controller" {
-  name_prefix = "AWSLoadBalancerController"
-  description = "EKS AWS Load Balancer Controller policy"
-  policy      = file("${path.module}/../iam/AWSLoadBalancerController.json")
 }
 
 resource "kubernetes_service_account" "aws_load_balancer_controller" {
